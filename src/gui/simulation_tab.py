@@ -6,9 +6,12 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 import numpy as np
 
 class SimulationTab(ttk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, results_tab=None):
         super().__init__(parent)
         self.parent = parent
+        self.results_tab = results_tab  # Referencia a ResultsTab si es necesario
+        self.orbit_figures = []
+        self.paper_figures = []  # Para figuras tipo paper si las usas
 
         self.fig, self.axs = plt.subplots(4, 1, figsize=(10, 8), sharex=True) # 4 subplots
         self.fig.suptitle('Simulación de Carga en Tiempo Real')
@@ -138,6 +141,7 @@ class SimulationTab(ttk.Frame):
     def plot_paper_figures(self, config_params):
         """
         Dibuja las figuras tipo paper para el mapa tent y las órbitas.
+        Guarda la figura en self.paper_figures para exportación.
         """
         import matplotlib.pyplot as plt
         import numpy as np
@@ -196,4 +200,55 @@ class SimulationTab(ttk.Frame):
         axs[1, 1].set_ylim([0, 1])
 
         plt.tight_layout()
+        self.paper_figures = [fig]  # Guarda la figura para exportar
+
+        # Si ResultsTab está disponible, pásale la figura paper como lista plana (no lista de listas)
+        if self.results_tab is not None:
+            self.results_tab.set_paper_figures([fig])
+
         plt.show()
+
+    def plot_orbits(self, orbit_data_list):
+        """
+        Genera y muestra las gráficas de órbitas.
+        Guarda las figuras en self.orbit_figures para exportación.
+        """
+        self.orbit_figures = []  # Limpiar figuras previas
+        for i, orbit_data in enumerate(orbit_data_list):
+            fig, ax = plt.subplots()
+            ax.plot(orbit_data['x'], orbit_data['y'], label=f'Órbita {i+1}')
+            ax.set_title(f'Órbita {i+1}')
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.legend()
+            self.orbit_figures.append(fig)
+            # ...código para mostrar en la GUI...
+        # Si ResultsTab está disponible, pásale las figuras
+        if self.results_tab is not None:
+            self.results_tab.set_orbit_figures(self.orbit_figures)
+            self.results_tab.set_simulation_figure(self.fig)
+
+    def get_simulation_figure(self):
+        """
+        Devuelve la figura principal de simulación (4 subplots).
+        """
+        return self.fig
+
+    def get_orbit_figures(self):
+        """
+        Devuelve la lista de figuras de órbitas.
+        """
+        return self.orbit_figures
+
+    def get_all_figures_for_export(self):
+        """
+        Devuelve una lista con todas las figuras relevantes para exportar.
+        """
+        figs = []
+        if hasattr(self, "fig"):
+            figs.append(self.fig)
+        if hasattr(self, "orbit_figures") and self.orbit_figures:
+            figs.extend(self.orbit_figures)
+        if hasattr(self, "paper_figures") and self.paper_figures:
+            figs.extend(self.paper_figures)
+        return figs

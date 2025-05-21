@@ -1,11 +1,9 @@
 import pandas as pd
 import numpy as np
-import os
 import datetime
 from tkinter import filedialog, messagebox
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages # Para exportar a PDF
-import io
+from matplotlib.backends.backend_pdf import PdfPages
 
 class DataExporter:
     """
@@ -18,22 +16,19 @@ class DataExporter:
         Exporta el historial de la simulación y la secuencia de bits a archivos CSV.
         """
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        # Diálogo para seleccionar la ubicación de guardado
         file_path_base = filedialog.asksaveasfilename(
             defaultextension=".csv",
             initialfile=f"simulacion_carga_{timestamp}",
             title="Guardar Historial de Simulación CSV",
             filetypes=[("Archivos CSV", "*.csv")]
         )
-
-        if not file_path_base: # Si el usuario cancela
+        if not file_path_base:
             return
 
         try:
             exported_any = False
             # Exportar historial de métricas
-            if simulation_history and any(simulation_history.values()):
+            if simulation_history and any(len(v) > 0 for v in simulation_history.values()):
                 df_history = pd.DataFrame(simulation_history)
                 df_history.index.name = 'step'
                 df_history.to_csv(file_path_base)
@@ -42,19 +37,18 @@ class DataExporter:
             else:
                 messagebox.showinfo("Exportación CSV", "No hay historial de simulación para exportar.")
 
-            # Exportar secuencia de bits (en un archivo separado o al mismo si se desea)
+            # Exportar secuencia de bits
             if bit_sequence is not None and len(bit_sequence) > 0:
-                bit_file_path = file_path_base.replace(".csv", "_bits.csv") if exported_any else file_path_base # Evita sobrescribir si no se exportó historial
-                if not exported_any: # Si no se exportó historial, se usa el mismo nombre de archivo
-                     bit_file_path = filedialog.asksaveasfilename(
+                bit_file_path = file_path_base.replace(".csv", "_bits.csv") if exported_any else file_path_base
+                if not exported_any:
+                    bit_file_path = filedialog.asksaveasfilename(
                         defaultextension=".csv",
                         initialfile=f"secuencia_bits_{timestamp}",
                         title="Guardar Secuencia de Bits CSV",
                         filetypes=[("Archivos CSV", "*.csv")]
                     )
-                     if not bit_file_path: # Si el usuario cancela de nuevo
-                         return
-                
+                    if not bit_file_path:
+                        return
                 df_bits = pd.DataFrame(bit_sequence, columns=['bit_value'])
                 df_bits.index.name = 'bit_index'
                 df_bits.to_csv(bit_file_path)
@@ -66,10 +60,11 @@ class DataExporter:
             messagebox.showerror("Error de Exportación CSV", f"No se pudo exportar los datos a CSV: {e}")
 
     @staticmethod
-    def export_to_pdf(simulation_history: dict, bit_sequence: np.ndarray, test_results: dict, figures: plt.Figure):
+    def export_to_pdf(simulation_history: dict, bit_sequence: np.ndarray, test_results: dict, figures):
         """
         Exporta un reporte completo de la simulación a un archivo PDF.
         Incluye un resumen textual de los resultados y los gráficos.
+        Admite una lista de figuras o una lista de listas de figuras.
         """
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         file_path = filedialog.asksaveasfilename(
@@ -78,8 +73,7 @@ class DataExporter:
             title="Guardar Reporte de Simulación PDF",
             filetypes=[("Archivos PDF", "*.pdf")]
         )
-
-        if not file_path: # Si el usuario cancela
+        if not file_path:
             return
 
         try:
@@ -87,16 +81,16 @@ class DataExporter:
                 # Página de Título/Resumen
                 fig_summary = plt.figure(figsize=(8.5, 11))
                 ax_summary = fig_summary.add_subplot(111)
-                ax_summary.axis('off') # Ocultar ejes
+                ax_summary.axis('off')
 
                 summary_text = "Reporte de Simulación de Carga con Mapas Caóticos\n\n"
                 summary_text += f"Fecha del Reporte: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-                
-                if simulation_history and any(simulation_history.values()):
+
+                # Métricas de simulación
+                if simulation_history and any(len(v) > 0 for v in simulation_history.values()):
                     summary_text += "--- Métricas de Simulación ---\n"
                     num_steps = len(simulation_history.get('simulated_requests', []))
                     summary_text += f"Número de Pasos Simulados: {num_steps}\n"
-                    
                     if simulation_history.get('simulated_requests'):
                         avg_req = np.mean(simulation_history['simulated_requests'])
                         summary_text += f"Solicitudes Promedio: {avg_req:.2f}\n"
@@ -113,6 +107,7 @@ class DataExporter:
                         summary_text += f"Uso de Memoria Promedio (%): {avg_mem:.2f}\n"
                     summary_text += "\n"
 
+                # Secuencia de bits
                 if bit_sequence is not None and len(bit_sequence) > 0:
                     n0 = np.sum(bit_sequence == 0)
                     n1 = np.sum(bit_sequence == 1)
@@ -121,42 +116,50 @@ class DataExporter:
                     summary_text += f"Cantidad de 0s: {n0} ({n0/len(bit_sequence)*100:.2f}%)\n"
                     summary_text += f"Cantidad de 1s: {n1} ({n1/len(bit_sequence)*100:.2f}%)\n\n"
 
-
+                # Resultados de pruebas
                 if test_results:
                     summary_text += "--- Resultados de Pruebas de Aleatoriedad ---\n"
                     for test_name, result in test_results.items():
                         p_value = result.get('p_value', np.nan)
-                        # Mostrar el mensaje del test si existe
                         test_message = result.get('message', '')
                         test_status = "N/A"
-                        if p_value is not np.nan:
+                        if not np.isnan(p_value):
                             test_status = "PASSED" if p_value >= 0.01 else "FAILED"
-                        
                         summary_text += f"{test_name.replace('_', ' ').title()}:\n"
                         summary_text += f"  P-valor: {p_value:.4f}\n"
                         summary_text += f"  Resultado: {test_status}\n"
-                        if test_message != "OK":
+                        if test_message and test_message != "OK":
                             summary_text += f"  Mensaje: {test_message}\n"
                         summary_text += "\n"
                 else:
                     summary_text += "No hay resultados de pruebas de aleatoriedad disponibles.\n\n"
 
-                ax_summary.text(0.05, 0.95, summary_text, 
-                                verticalalignment='top', 
-                                horizontalalignment='left', 
-                                transform=ax_summary.transAxes, 
-                                fontsize=10, 
+                ax_summary.text(0.05, 0.95, summary_text,
+                                verticalalignment='top',
+                                horizontalalignment='left',
+                                transform=ax_summary.transAxes,
+                                fontsize=10,
                                 fontfamily='monospace')
                 pdf.savefig(fig_summary)
                 plt.close(fig_summary)
 
-                # Añadir las figuras de los resultados (histogramas)
-                if figures:
-                    pdf.savefig(figures)
-                
+                # Añadir todas las figuras proporcionadas (pueden ser listas anidadas de cualquier profundidad)
+                def flatten_figures(figs):
+                    result = []
+                    if isinstance(figs, list) or isinstance(figs, tuple):
+                        for f in figs:
+                            result.extend(flatten_figures(f))
+                    elif figs is not None:
+                        result.append(figs)
+                    return result
+
+                figs_to_export = flatten_figures(figures)
+                for fig in figs_to_export:
+                    if fig is not None:
+                        pdf.savefig(fig)
             messagebox.showinfo("Exportación Exitosa", f"Reporte PDF guardado en:\n{file_path}")
 
         except Exception as e:
             messagebox.showerror("Error de Exportación PDF", f"No se pudo generar el reporte PDF: {e}")
             import traceback
-            traceback.print_exc() # Para depuración
+            traceback.print_exc()

@@ -5,13 +5,21 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
 import seaborn as sns
+from src.utils.data_exporter import DataExporter
+from tkinter import messagebox
 
 class ResultsTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
         self.test_results_threshold = 0.01 # Umbral de p-valor para PASSED/FAILED (como en el paper)
-
+        # Variables para exportar
+        self.simulation_history = None
+        self.bit_sequence = None
+        self.test_results = None
+        self.orbit_figures = []  # <-- Agrega esto para almacenar figuras de órbitas
+        self.simulation_figure = None  # Nueva variable para la figura principal de simulación
+        self.paper_figures = []  # Nueva variable para figuras tipo paper
         self._create_widgets()
 
     def _create_widgets(self):
@@ -60,6 +68,10 @@ class ResultsTab(ttk.Frame):
         self.poker_label = ttk.Label(tests_labels_frame, text="Poker Test (m=4)")
         self.poker_label.grid(row=4, column=0, padx=5, pady=2, sticky="w")
 
+        # --- Botón de exportación ---
+        export_btn = ttk.Button(results_frame, text="Exportar Datos", command=self._export_data_dialog)
+        export_btn.pack(anchor="ne", padx=10, pady=5)
+
         # --- Gráficos de pruebas de aleatoriedad ---
         self.fig_tests, self.axs_tests = plt.subplots(2, 2, figsize=(10, 8))
         self.fig_tests.suptitle('Pruebas de Aleatoriedad')
@@ -85,6 +97,59 @@ class ResultsTab(ttk.Frame):
         self.toolbar_metrics = NavigationToolbar2Tk(self.canvas_metrics, results_frame)
         self.toolbar_metrics.update()
         self.canvas_widget_metrics.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+    def set_orbit_figures(self, orbit_figures):
+        """
+        Permite recibir las figuras de órbitas desde SimulationTab.
+        """
+        self.orbit_figures = orbit_figures
+
+    def set_simulation_figure(self, simulation_figure):
+        """
+        Permite recibir la figura principal de simulación desde SimulationTab.
+        """
+        self.simulation_figure = simulation_figure
+
+    def set_paper_figures(self, paper_figures):
+        """
+        Permite recibir las figuras tipo paper desde SimulationTab.
+        """
+        self.paper_figures = paper_figures
+
+    def _export_data_dialog(self):
+        """
+        Muestra un diálogo para elegir el tipo de exportación (CSV o PDF).
+        """
+        def do_export(export_type):
+            if self.simulation_history is None or self.bit_sequence is None:
+                messagebox.showerror("Error", "No hay datos para exportar.")
+                return
+            if export_type == "CSV":
+                DataExporter.export_to_csv(self.simulation_history, self.bit_sequence)
+            elif export_type == "PDF":
+                # Exporta todas las figuras relevantes (tests, métricas, simulación, órbitas y paper) si existen
+                figs = []
+                if hasattr(self, "fig_tests"):
+                    figs.append(self.fig_tests)
+                if hasattr(self, "fig_metrics"):
+                    figs.append(self.fig_metrics)
+                if hasattr(self, "simulation_figure") and self.simulation_figure is not None:
+                    figs.append(self.simulation_figure)
+                if hasattr(self, "orbit_figures") and self.orbit_figures:
+                    figs.extend(self.orbit_figures)  # Asegura lista plana
+                if hasattr(self, "paper_figures") and self.paper_figures:
+                    figs.extend(self.paper_figures)  # Asegura lista plana
+                DataExporter.export_to_pdf(self.simulation_history, self.bit_sequence, self.test_results, figs)
+            export_win.destroy()
+
+        export_win = tk.Toplevel(self)
+        export_win.title("Exportar Datos")
+        export_win.geometry("250x120")
+        ttk.Label(export_win, text="¿Qué formato desea exportar?").pack(pady=10)
+        btn_csv = ttk.Button(export_win, text="Exportar a CSV", command=lambda: do_export("CSV"))
+        btn_csv.pack(pady=5)
+        btn_pdf = ttk.Button(export_win, text="Exportar a PDF", command=lambda: do_export("PDF"))
+        btn_pdf.pack(pady=5)
 
     def display_simulation_summary(self, history_data: dict):
         """
@@ -113,6 +178,7 @@ class ResultsTab(ttk.Frame):
 
         # Actualizar los gráficos de distribución de la simulación
         self._update_simulation_charts(history_data)
+        self.simulation_history = history_data
 
     def display_test_results(self, test_results: dict, bit_sequence: np.ndarray):
         def safe_float(p_val):
@@ -123,8 +189,9 @@ class ResultsTab(ttk.Frame):
 
         # Guardar la secuencia de bits para otros métodos
         self.bit_sequence = bit_sequence
+        self.test_results = test_results
 
-        # --- Monobit Test: Histograma de bits ---s
+        # --- Monobit Test: Histograma de bits ---
         self.axs_tests[0, 0].clear()
         if bit_sequence is not None and len(bit_sequence) > 0:
             n0 = np.sum(bit_sequence == 0)
