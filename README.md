@@ -139,7 +139,7 @@ S_{obs} = \frac{|S|}{\sqrt{n}}
 $$
 
 $$
-p\text{-value} = \operatorname{erfc}\left( \frac{S_{obs}}{\sqrt{2}} \right)
+p\text{-value} = \mathrm{erfc}\left( \frac{S_{obs}}{\sqrt{2}} \right)
 $$
 
 ---
@@ -167,7 +167,7 @@ $$
 $$
 
 $$
-p\text{-value} = \operatorname{erfc}\left( \frac{|\text{stat}|}{\sqrt{2}} \right)
+p\text{-value} = \mathrm{erfc}\left( \frac{|\text{stat}|}{\sqrt{2}} \right)
 $$
 
 ---
