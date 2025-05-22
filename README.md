@@ -98,70 +98,89 @@ python -m unittest discover -s tests
 
 ## 3. Fórmulas Matemáticas
 
+> **Nota:** Las siguientes fórmulas están escritas en notación LaTeX. Si tu visor de Markdown soporta MathJax o KaTeX, se mostrarán correctamente. Si no, puedes copiar y pegar las fórmulas en un editor compatible para visualizarlas.
+
 ### Skew Tent Map
 
 El mapa Skew Tent se define como:
 
-\[
+$$
 f(x) = 
 \begin{cases}
-\frac{x}{\alpha} & \text{si } 0 \leq x < \alpha \\
-\frac{1-x}{1-\alpha} & \text{si } \alpha \leq x \leq 1
+\dfrac{x}{\alpha} & \text{si } 0 \leq x < \alpha \\\\
+\dfrac{1-x}{1-\alpha} & \text{si } \alpha \leq x \leq 1
 \end{cases}
-\]
+$$
 
-Donde \( \alpha \) es el parámetro de sesgo (típicamente \( 0.49 \leq \alpha \leq 0.50 \)).
+Donde $\alpha$ es el parámetro de sesgo (típicamente $0.49 \leq \alpha \leq 0.50$).
+
+---
 
 ### Generador CCCBG (Cross-Coupled Chaotic Bit Generator)
 
 Para cada paso:
-- \( x_{n+1} = (f(x_n) + y_n) \mod 1 \)
-- \( y_{n+1} = (f(y_n) + x_n) \mod 1 \)
-- El bit generado es \( 1 \) si \( x_{n+1} > 0.5 \), si no \( 0 \).
+
+- $x_{n+1} = \left( f(x_n) + y_n \right) \bmod 1$
+- $y_{n+1} = \left( f(y_n) + x_n \right) \bmod 1$
+- El bit generado es $1$ si $x_{n+1} > 0.5$, si no $0$.
+
+---
 
 ### Pruebas de Aleatoriedad
 
 #### Monobit Test
 
-\[
+$$
 S = \sum_{i=1}^n (2b_i - 1)
-\]
-\[
+$$
+
+$$
 S_{obs} = \frac{|S|}{\sqrt{n}}
-\]
-\[
-p\text{-value} = \operatorname{erfc}\left(\frac{S_{obs}}{\sqrt{2}}\right)
-\]
+$$
+
+$$
+p\text{-value} = \operatorname{erfc}\left( \frac{S_{obs}}{\sqrt{2}} \right)
+$$
+
+---
 
 #### Serial Test (m=2)
 
 Se cuentan las frecuencias de las díadas (00, 01, 10, 11):
 
-\[
+$$
 \chi^2 = \sum_{i=1}^{4} \frac{(O_i - E)^2}{E}
-\]
-donde \( O_i \) es la frecuencia observada y \( E = \frac{n-1}{4} \).
+$$
+
+donde $O_i$ es la frecuencia observada y $E = \dfrac{n-1}{4}$.
+
+---
 
 #### Auto-correlation Test
 
-\[
+$$
 V = \sum_{i=1}^{n-d} [b_i = b_{i+d}]
-\]
-\[
-\text{stat} = \frac{2(V - \frac{n-d}{2})}{\sqrt{n-d}}
-\]
-\[
-p\text{-value} = \operatorname{erfc}\left(\frac{|\text{stat}|}{\sqrt{2}}\right)
-\]
+$$
+
+$$
+\text{stat} = \frac{2 \left( V - \frac{n-d}{2} \right)}{\sqrt{n-d}}
+$$
+
+$$
+p\text{-value} = \operatorname{erfc}\left( \frac{|\text{stat}|}{\sqrt{2}} \right)
+$$
+
+---
 
 #### Poker Test (m=4)
 
-Se divide la secuencia en bloques de \( m \) bits y se cuentan los patrones:
+Se divide la secuencia en bloques de $m$ bits y se cuentan los patrones:
 
-\[
+$$
 \text{stat} = \frac{2^m}{k} \sum_{i=1}^{2^m} f_i^2 - k
-\]
-donde \( k = \left\lfloor \frac{n}{m} \right\rfloor \), \( f_i \) es la frecuencia del patrón \( i \).
+$$
+
+donde $k = \left\lfloor \frac{n}{m} \right\rfloor$, $f_i$ es la frecuencia del patrón $i$.
 
 ---
 
@@ -177,6 +196,6 @@ donde \( k = \left\lfloor \frac{n}{m} \right\rfloor \), \( f_i \) es la frecuenc
 
 ## 5. Notas
 
-- El rango recomendado para \( \alpha \) es [0.49, 0.50].
+- El rango recomendado para $\alpha$ es $[0.49, 0.50]$.
 - Para pruebas de aleatoriedad confiables, se recomienda usar al menos 20,000 bits.
 - Los resultados pueden exportarse a CSV o PDF desde la pestaña de resultados.
