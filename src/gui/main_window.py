@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
 import numpy as np
+import os
 
 # Importar las clases del core
 from src.core.chaotic_generator import ChaoticBitGenerator
@@ -26,6 +27,7 @@ class MainWindow(tk.Tk):
 
         self._create_notebook()
         self._setup_simulation_threading()
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
 
     def _create_notebook(self):
         self.notebook = ttk.Notebook(self)
@@ -154,6 +156,13 @@ class MainWindow(tk.Tk):
             messagebox.showinfo("Simulación", "Solicitud de detención de simulación enviada. Esperando finalización del paso actual.")
         else:
             messagebox.showinfo("Simulación", "No hay simulación en curso para detener.")
+
+    def _on_close(self):
+        """Cierra completamente la aplicación y todos los hilos."""
+        self.stop_simulation_flag = True
+        self.simulation_running = False
+        self.destroy()
+        os._exit(0)  # Forzar cierre de todos los procesos/hilos
 
 if __name__ == "__main__":
     app = MainWindow()

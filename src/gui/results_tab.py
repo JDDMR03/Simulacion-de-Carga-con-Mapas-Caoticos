@@ -70,7 +70,6 @@ class ResultsTab(ttk.Frame):
         # --- Tab: Figuras tipo Paper ---
         self.tab_paper = ttk.Frame(self.figures_notebook)
         self.paper_canvases = []
-        self.paper_toolbars = []
         self.figures_notebook.add(self.tab_paper, text="Variabilidad")
 
     def _clear_tab(self, tab):
@@ -81,16 +80,11 @@ class ResultsTab(ttk.Frame):
         # Paper
         self._clear_tab(self.tab_paper)
         self.paper_canvases = []
-        self.paper_toolbars = []
         if hasattr(self, "paper_figures") and self.paper_figures:
             for fig in self.paper_figures:
                 canvas = FigureCanvasTkAgg(fig, master=self.tab_paper)
                 canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True, pady=5)
-                toolbar = NavigationToolbar2Tk(canvas, self.tab_paper)
-                toolbar.update()
-                canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
                 self.paper_canvases.append(canvas)
-                self.paper_toolbars.append(toolbar)
 
         # Actualizar lista de todas las figuras para exportación
         figs = []
@@ -269,7 +263,7 @@ class ResultsTab(ttk.Frame):
         self.avg_cpu_label.config(text="Uso de CPU Promedio: N/D")
         self.max_cpu_label.config(text="Uso de CPU Máximo: N/D")
         self.avg_mem_label.config(text="Uso de Memoria Promedio: N/D")
-        self.max_mem_label.config(text="Uso de Memoria Máximo: N/D")
+        self.avg_mem_label.config(text="Uso de Memoria Máximo: N/D")
 
     def reset_test_labels(self):
         self._clear_charts()

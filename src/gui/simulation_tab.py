@@ -144,9 +144,11 @@ class SimulationTab(ttk.Frame):
 
         alpha = config_params.get('alpha', 0.499)
         x0 = config_params.get('x0', 0.3)
+        # Usar N de la simulación, mínimo 2 para evitar errores
+        N = max(2, int(config_params.get('num_bits', 100)))
+        N2 = N  # Usar el mismo N para la sensibilidad
 
         # Figura 1: Órbita del Skew Tent Map para el alpha dado
-        N = 100
         X = np.zeros(N)
         X[0] = x0
         def skew_tent_map(x, alpha):
@@ -155,14 +157,13 @@ class SimulationTab(ttk.Frame):
             X[i] = skew_tent_map(X[i-1], alpha)
         fig1, ax1 = plt.subplots(figsize=(6, 4))
         ax1.plot(range(N), X, marker='o', markersize=2, linestyle='-', color='blue')
-        ax1.set_title(f"Órbita Skew Tent Map (α={alpha:.4f}, x₀={x0})")
+        ax1.set_title(f"Órbita Skew Tent Map (α={alpha:.4f}, x₀={x0}, N={N})")
         ax1.set_xlabel("Iteración")
         ax1.set_ylabel("$x_i$")
         ax1.set_ylim([0, 1])
         ax1.grid(True)
 
         # Figura 2: Sensibilidad a condiciones iniciales o alpha
-        N2 = 50
         # Sensibilidad a condiciones iniciales
         X1 = np.zeros(N2)
         X2 = np.zeros(N2)
@@ -174,7 +175,7 @@ class SimulationTab(ttk.Frame):
         fig2, ax2 = plt.subplots(figsize=(6, 4))
         ax2.plot(range(N2), X1, 'b-', label=f"x₀={x0:.3f}")
         ax2.plot(range(N2), X2, 'r--', label=f"x₀={x0+0.001:.3f}")
-        ax2.set_title(f"Sensibilidad a Condiciones Iniciales (α={alpha:.4f})")
+        ax2.set_title(f"Sensibilidad a Condiciones Iniciales (α={alpha:.4f}, N={N2})")
         ax2.set_xlabel("Iteración")
         ax2.set_ylabel("$x_i$")
         ax2.set_ylim([0, 1])
