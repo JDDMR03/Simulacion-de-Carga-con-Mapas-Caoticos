@@ -119,18 +119,22 @@ class DataExporter:
                 # Resultados de pruebas
                 if test_results:
                     summary_text += "--- Resultados de Pruebas de Aleatoriedad ---\n"
-                    for test_name, result in test_results.items():
-                        p_value = result.get('p_value', np.nan)
-                        test_message = result.get('message', '')
+                    # Solo incluir Monobit Test en el PDF
+                    monobit_result = test_results.get('Monobit Test') or test_results.get('monobit')
+                    if monobit_result:
+                        p_value = monobit_result.get('p_value', np.nan)
+                        test_message = monobit_result.get('message', '')
                         test_status = "N/A"
                         if not np.isnan(p_value):
                             test_status = "APROBADA" if p_value >= 0.01 else "NO APROBADA"
-                        summary_text += f"{test_name.replace('_', ' ').title()}:\n"
+                        summary_text += f"Monobit Test:\n"
                         summary_text += f"  P-valor: {p_value:.4f}\n"
                         summary_text += f"  Resultado: {test_status}\n"
                         if test_message and test_message != "OK":
                             summary_text += f"  Mensaje: {test_message}\n"
                         summary_text += "\n"
+                    else:
+                        summary_text += "No hay resultados de Monobit Test disponibles.\n\n"
                 else:
                     summary_text += "No hay resultados de pruebas de aleatoriedad disponibles.\n\n"
 
