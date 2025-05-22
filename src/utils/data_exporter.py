@@ -30,7 +30,7 @@ class DataExporter:
             # Exportar historial de métricas
             if simulation_history and any(len(v) > 0 for v in simulation_history.values()):
                 df_history = pd.DataFrame(simulation_history)
-                df_history.index.name = 'step'
+                df_history.index.name = 'paso'
                 df_history.to_csv(file_path_base)
                 exported_any = True
                 messagebox.showinfo("Exportación Exitosa", f"Historial de simulación guardado en:\n{file_path_base}")
@@ -49,8 +49,8 @@ class DataExporter:
                     )
                     if not bit_file_path:
                         return
-                df_bits = pd.DataFrame(bit_sequence, columns=['bit_value'])
-                df_bits.index.name = 'bit_index'
+                df_bits = pd.DataFrame(bit_sequence, columns=['valor_bit'])
+                df_bits.index.name = 'indice_bit'
                 df_bits.to_csv(bit_file_path)
                 messagebox.showinfo("Exportación Exitosa", f"Secuencia de bits guardada en:\n{bit_file_path}")
             else:
@@ -124,7 +124,7 @@ class DataExporter:
                         test_message = result.get('message', '')
                         test_status = "N/A"
                         if not np.isnan(p_value):
-                            test_status = "PASSED" if p_value >= 0.01 else "FAILED"
+                            test_status = "APROBADA" if p_value >= 0.01 else "NO APROBADA"
                         summary_text += f"{test_name.replace('_', ' ').title()}:\n"
                         summary_text += f"  P-valor: {p_value:.4f}\n"
                         summary_text += f"  Resultado: {test_status}\n"

@@ -2,8 +2,7 @@
 import tkinter as tk
 from tkinter import ttk
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class SimulationTab(ttk.Frame):
     def __init__(self, parent, results_tab=None):
@@ -19,11 +18,6 @@ class SimulationTab(ttk.Frame):
         # Canvas de Matplotlib
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas_widget = self.canvas.get_tk_widget()
-        self.canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-        # Toolbar de Matplotlib
-        self.toolbar = NavigationToolbar2Tk(self.canvas, self)
-        self.toolbar.update()
         self.canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         # Etiqueta para mostrar el paso actual
@@ -56,7 +50,7 @@ class SimulationTab(ttk.Frame):
         self.axs[2].set_ylim(0, 100) # CPU hasta 100% (fijo)
 
         self.axs[3].set_ylabel('Memoria (%)')
-        self.axs[3].set_xlabel('Paso de Tiempo')
+        self.axs[3].set_xlabel('Tiempo (pasos)')  # Cambia aquí el label del eje X
         self.axs[3].set_title('Uso de Memoria')
         self.axs[3].legend()
         self.axs[3].grid(True)
@@ -140,73 +134,58 @@ class SimulationTab(ttk.Frame):
 
     def plot_paper_figures(self, config_params):
         """
-        Dibuja las figuras tipo paper para el mapa tent y las órbitas.
-        Guarda la figura en self.paper_figures para exportación.
+        Dibuja dos figuras tipo paper:
+        1. Órbita del Skew Tent Map para el alpha dado.
+        2. Sensibilidad a condiciones iniciales o alpha.
+        Guarda las figuras en self.paper_figures para exportación.
         """
         import matplotlib.pyplot as plt
         import numpy as np
 
-        # Parámetros del paper
-        r_values = [0.4, 0.8]
-        x = np.linspace(0, 1, 500)
-        fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+        alpha = config_params.get('alpha', 0.499)
+        x0 = config_params.get('x0', 0.3)
 
-        # Tent map orbits for r=0.4 and r=0.8
-        for idx, r in enumerate(r_values):
-            tent_map = lambda x: r * x if x < 0.5 else r * (1 - x)
-            X = np.zeros(100)
-            X[0] = 0.1
-            for i in range(1, 100):
-                X[i] = tent_map(X[i-1])
-            axs[0, idx].plot(X[:-1], X[1:], 'k.', markersize=1)
-            axs[0, idx].set_title(f"System parameter = {r}")
-            axs[0, idx].set_xlabel("$X_n$")
-            axs[0, idx].set_ylabel("$X_{{n+1}}$")
-            axs[0, idx].set_xlim([0, 1])
-            axs[0, idx].set_ylim([0, 1])
-
-        # Orbits for two close initial conditions
-        r = 1.99
-        N = 25
-        X1 = np.zeros(N)
-        X2 = np.zeros(N)
-        X1[0] = 0.3
-        X2[0] = 0.301
+        # Figura 1: Órbita del Skew Tent Map para el alpha dado
+        N = 100
+        X = np.zeros(N)
+        X[0] = x0
+        def skew_tent_map(x, alpha):
+            return x / alpha if x < alpha else (1 - x) / (1 - alpha)
         for i in range(1, N):
-            X1[i] = r * X1[i-1] if X1[i-1] < 0.5 else r * (1 - X1[i-1])
-            X2[i] = r * X2[i-1] if X2[i-1] < 0.5 else r * (1 - X2[i-1])
-        axs[1, 0].plot(range(N), X1, 'k-.', label="X0=0.30")
-        axs[1, 0].plot(range(N), X2, 'k-', label="X0=0.301")
-        axs[1, 0].set_xlabel("Iteration number")
-        axs[1, 0].set_ylabel("$X_n$")
-        axs[1, 0].legend()
-        axs[1, 0].set_ylim([0, 1])
+            X[i] = skew_tent_map(X[i-1], alpha)
+        fig1, ax1 = plt.subplots(figsize=(6, 4))
+        ax1.plot(range(N), X, marker='o', markersize=2, linestyle='-', color='blue')
+        ax1.set_title(f"Órbita Skew Tent Map (α={alpha:.4f}, x₀={x0})")
+        ax1.set_xlabel("Iteración")
+        ax1.set_ylabel("$x_i$")
+        ax1.set_ylim([0, 1])
+        ax1.grid(True)
 
-        # Orbits for two close r values
-        X3 = np.zeros(N)
-        X4 = np.zeros(N)
-        X3[0] = 0.3
-        X4[0] = 0.3
-        r1 = 1.99
-        r2 = 1.991
-        for i in range(1, N):
-            X3[i] = r1 * X3[i-1] if X3[i-1] < 0.5 else r1 * (1 - X3[i-1])
-            X4[i] = r2 * X4[i-1] if X4[i-1] < 0.5 else r2 * (1 - X4[i-1])
-        axs[1, 1].plot(range(N), X3, 'k-', label="r=1.99")
-        axs[1, 1].plot(range(N), X4, 'k-.', label="r=1.991")
-        axs[1, 1].set_xlabel("Iteration number")
-        axs[1, 1].set_ylabel("$X_n$")
-        axs[1, 1].legend()
-        axs[1, 1].set_ylim([0, 1])
+        # Figura 2: Sensibilidad a condiciones iniciales o alpha
+        N2 = 50
+        # Sensibilidad a condiciones iniciales
+        X1 = np.zeros(N2)
+        X2 = np.zeros(N2)
+        X1[0] = x0
+        X2[0] = x0 + 0.001  # valor inicial muy cercano
+        for i in range(1, N2):
+            X1[i] = skew_tent_map(X1[i-1], alpha)
+            X2[i] = skew_tent_map(X2[i-1], alpha)
+        fig2, ax2 = plt.subplots(figsize=(6, 4))
+        ax2.plot(range(N2), X1, 'b-', label=f"x₀={x0:.3f}")
+        ax2.plot(range(N2), X2, 'r--', label=f"x₀={x0+0.001:.3f}")
+        ax2.set_title(f"Sensibilidad a Condiciones Iniciales (α={alpha:.4f})")
+        ax2.set_xlabel("Iteración")
+        ax2.set_ylabel("$x_i$")
+        ax2.set_ylim([0, 1])
+        ax2.legend()
+        ax2.grid(True)
 
-        plt.tight_layout()
-        self.paper_figures = [fig]  # Guarda la figura para exportar
+        self.paper_figures = [fig1, fig2]
 
-        # Si ResultsTab está disponible, pásale la figura paper como lista plana (no lista de listas)
+        # Si ResultsTab está disponible, pásale las figuras paper como lista plana
         if self.results_tab is not None:
-            self.results_tab.set_paper_figures([fig])
-
-        plt.show()
+            self.results_tab.set_paper_figures([fig1, fig2])
 
     def plot_orbits(self, orbit_data_list):
         """
@@ -222,7 +201,6 @@ class SimulationTab(ttk.Frame):
             ax.set_ylabel('y')
             ax.legend()
             self.orbit_figures.append(fig)
-            # ...código para mostrar en la GUI...
         # Si ResultsTab está disponible, pásale las figuras
         if self.results_tab is not None:
             self.results_tab.set_orbit_figures(self.orbit_figures)

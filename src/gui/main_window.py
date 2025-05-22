@@ -34,10 +34,10 @@ class MainWindow(tk.Tk):
         self.config_tab = ConfigTab(self.notebook)
         self.notebook.add(self.config_tab, text="Configuración")
 
-        self.simulation_tab = SimulationTab(self.notebook)
-        self.notebook.add(self.simulation_tab, text="Simulación en Tiempo Real")
-
+        # Crear ResultsTab primero para pasar referencia a SimulationTab
         self.results_tab = ResultsTab(self.notebook)
+        self.simulation_tab = SimulationTab(self.notebook, results_tab=self.results_tab)
+        self.notebook.add(self.simulation_tab, text="Simulación en Tiempo Real")
         self.notebook.add(self.results_tab, text="Análisis de Resultados")
 
         # Conectar el callback de la pestaña de configuración
@@ -90,8 +90,9 @@ class MainWindow(tk.Tk):
             # 1. Generar bits caóticos
             messagebox.showinfo("Simulación", f"Generando {config_params['num_bits']} bits caóticos. Esto puede tomar un momento para grandes N.")
             chaotic_bits = self.chaotic_generator.generate_cccbg_bits(
-                map_type1=config_params['map1_type'], x0_1=config_params['x0_1'], param1=config_params['param1'],
-                map_type2=config_params['map2_type'], x0_2=config_params['x0_2'], param2=config_params['param2'],
+                alpha=config_params['alpha'],
+                x0=config_params['x0'],
+                y0=config_params['y0'],
                 num_bits=config_params['num_bits']
             )
             

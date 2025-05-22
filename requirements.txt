@@ -1,7 +1,8 @@
 numpy
 scipy
 matplotlib
-Pillow
-reportlab
 pandas
 seaborn
+Pillow
+reportlab
+tk
