@@ -16,12 +16,6 @@ source venv/bin/activate  # En Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Si no existe `requirements.txt`, instala manualmente las dependencias principales:
-
-```bash
-pip install numpy scipy matplotlib pandas
-```
-
 ### Cómo correr la aplicación
 
 ```bash
