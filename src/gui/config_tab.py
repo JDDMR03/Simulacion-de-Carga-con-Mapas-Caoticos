@@ -40,12 +40,12 @@ class ConfigTab(ttk.Frame):
         # Número de bits/pasos de simulación
         ttk.Label(chaotic_gen_frame, text="Número de Bits/Pasos (N):").grid(row=3, column=0, padx=5, pady=2, sticky="w")
         self.num_bits_entry = ttk.Entry(chaotic_gen_frame)
-        self.num_bits_entry.insert(0, "20000")
+        self.num_bits_entry.insert(0, "10000")
         self.num_bits_entry.grid(row=3, column=1, padx=5, pady=2, sticky="ew")
 
         # Advertencia para el número de bits
         self.num_bits_warning_label = ttk.Label(chaotic_gen_frame, 
-                                                text="*Mínimo 20,000 para todas las pruebas de aleatoriedad.", 
+                                                text="*Mínimo 10,000 para todas las pruebas de aleatoriedad.", 
                                                 foreground="blue", font=("Arial", 8))
         self.num_bits_warning_label.grid(row=4, column=0, columnspan=2, padx=5, pady=2, sticky="w")
 
@@ -114,9 +114,9 @@ class ConfigTab(ttk.Frame):
             if config_params['num_bits'] <= 0:
                 messagebox.showerror("Error de Validación", "El número de bits debe ser un entero positivo.")
                 return
-            if config_params['num_bits'] < 5000:
+            if config_params['num_bits'] < 10000:
                 response = messagebox.askyesno("Advertencia de Longitud", 
-                                                f"El número de bits ({config_params['num_bits']}) es menor a 20,000. "
+                                                f"El número de bits ({config_params['num_bits']}) es menor a 10,000. "
                                                 f"Algunas pruebas de aleatoriedad pueden no ser válidas.\n"
                                                 f"¿Desea continuar de todos modos?")
                 if not response:

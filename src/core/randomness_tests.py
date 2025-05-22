@@ -26,7 +26,7 @@ class RandomnessTests:
         Para m=2, compara la frecuencia de 00, 01, 10, 11.
         """
         n = len(bit_sequence)
-        if n < 1000:
+        if n < 10000:
             return {"p_value": np.nan, "statistic": np.nan, "message": f"Secuencia de bits demasiado corta (n={n}). Se recomienda n >= 1000."}
         if m != 2:
             return {"p_value": np.nan, "statistic": np.nan, "message": "Solo m=2 soportado."}
@@ -47,7 +47,7 @@ class RandomnessTests:
         Auto-correlation Test: Verifica la correlación entre bits separados por d posiciones.
         """
         n = len(bit_sequence)
-        if n < 1000 or d >= n:
+        if n < 10000 or d >= n:
             return {"p_value": np.nan, "statistic": np.nan, "message": "Secuencia demasiado corta o d inválido."}
         matches = np.sum(bit_sequence[:n-d] == bit_sequence[d:])
         v = matches
@@ -61,7 +61,7 @@ class RandomnessTests:
         """
         n = len(bit_sequence)
         k = n // m
-        if n < 5000 or k < 5 * (2**m):
+        if n < 10000 or k < 5 * (2**m):
             return {"p_value": np.nan, "statistic": np.nan, "message": f"Secuencia demasiado corta o m muy grande (n={n}, m={m})."}
         blocks = [''.join(str(int(b)) for b in bit_sequence[i*m:(i+1)*m]) for i in range(k)]
         unique, counts = np.unique(blocks, return_counts=True)
