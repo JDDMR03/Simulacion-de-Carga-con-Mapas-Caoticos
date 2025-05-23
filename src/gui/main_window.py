@@ -18,7 +18,7 @@ from src.gui.results_tab import ResultsTab
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Simulador de Carga con Mapas Caóticos")
+        self.title("BitGen")
         self.geometry("1920x1080") # Aumentar tamaño para mejor visualización
 
         self.chaotic_generator = ChaoticBitGenerator()
