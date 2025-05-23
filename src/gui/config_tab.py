@@ -1,12 +1,20 @@
 # src/gui/config_tab.py
 import tkinter as tk
 from tkinter import ttk, messagebox
+import time
 
 class ConfigTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
         self.simulation_callback = None
+
+        # Calcular alpha en el rango [0.4900, 0.5000] usando el tiempo actual
+        current_time = int(time.time())
+        raw_alpha = 0.4900 + ((current_time % 100) / 10000.0)
+        print(((current_time % 100) / 1000.0))
+        print(raw_alpha)
+        self.alpha_value = min(raw_alpha, 0.5000)
 
         self._create_widgets()
 
@@ -19,11 +27,9 @@ class ConfigTab(ttk.Frame):
         chaotic_gen_frame = ttk.LabelFrame(config_frame, text="Generador de Bits Caóticos (Skew Tent Map)")
         chaotic_gen_frame.pack(fill="x", padx=5, pady=5)
 
-        # Parámetro alpha
+        # Parámetro alpha (solo texto, no editable)
         ttk.Label(chaotic_gen_frame, text="Parámetro del sistema (α):").grid(row=0, column=0, padx=5, pady=2, sticky="w")
-        self.alpha_entry = ttk.Entry(chaotic_gen_frame)
-        self.alpha_entry.insert(0, "0.499")
-        self.alpha_entry.grid(row=0, column=1, padx=5, pady=2, sticky="ew")
+        ttk.Label(chaotic_gen_frame, text=f"{self.alpha_value:.4f}", foreground="blue").grid(row=0, column=1, padx=5, pady=2, sticky="w")
 
         # Condición inicial x0
         ttk.Label(chaotic_gen_frame, text="Condición inicial del primer mapa (x₀):").grid(row=1, column=0, padx=5, pady=2, sticky="w")
@@ -93,7 +99,7 @@ class ConfigTab(ttk.Frame):
         """Recoge los parámetros y llama al callback de la simulación."""
         try:
             config_params = {
-                'alpha': float(self.alpha_entry.get()),
+                'alpha': float(self.alpha_value),
                 'x0': float(self.x0_entry.get()),
                 'y0': float(self.y0_entry.get()),
                 'num_bits': int(self.num_bits_entry.get()),

@@ -11,9 +11,11 @@ class DataExporter:
     a varios formatos (CSV, PDF).
     """
     @staticmethod
-    def export_to_csv(simulation_history: dict, bit_sequence: np.ndarray):
+    def export_to_csv(simulation_history: dict, bit_sequence: np.ndarray, x_values=None, period_ok=None):
         """
         Exporta el historial de la simulación y la secuencia de bits a archivos CSV.
+        x_values: valores reales antes de decidir el bit (opcional)
+        period_ok: bool, si la semilla cumple su periodo (opcional)
         """
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         file_path_base = filedialog.asksaveasfilename(
@@ -49,9 +51,22 @@ class DataExporter:
                     )
                     if not bit_file_path:
                         return
-                df_bits = pd.DataFrame(bit_sequence, columns=['valor_bit'])
+                # Crear DataFrame con valor real y bit
+                if x_values is not None and len(x_values) == len(bit_sequence):
+                    df_bits = pd.DataFrame({
+                        'valor_real': x_values,
+                        'valor_bit': bit_sequence
+                    })
+                else:
+                    df_bits = pd.DataFrame({'valor_bit': bit_sequence})
                 df_bits.index.name = 'indice_bit'
                 df_bits.to_csv(bit_file_path)
+                # Escribir el resultado de periodo al final del archivo
+                with open(bit_file_path, "a", encoding="utf-8") as f:
+                    f.write("\n")
+                    if period_ok is not None:
+                        msg = "PERIODO: CUMPLIDO" if period_ok else "PERIODO: NO CUMPLIDO"
+                        f.write(f"# {msg}\n")
                 messagebox.showinfo("Exportación Exitosa", f"Secuencia de bits guardada en:\n{bit_file_path}")
             else:
                 messagebox.showinfo("Exportación CSV", "No hay secuencia de bits para exportar.")

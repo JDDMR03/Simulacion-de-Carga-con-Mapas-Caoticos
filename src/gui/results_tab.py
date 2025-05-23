@@ -17,6 +17,8 @@ class ResultsTab(ttk.Frame):
         self.paper_figures = []
         self.simulation_figure = None
         self.all_figures = []
+        self.chaotic_x_values = None
+        self.period_ok = None
         self._create_widgets()
 
     def _create_widgets(self):
@@ -106,7 +108,12 @@ class ResultsTab(ttk.Frame):
                 messagebox.showerror("Error", "No hay datos para exportar.")
                 return
             if export_type == "CSV":
-                DataExporter.export_to_csv(self.simulation_history, self.bit_sequence)
+                DataExporter.export_to_csv(
+                    self.simulation_history,
+                    self.bit_sequence,
+                    x_values=self.chaotic_x_values,
+                    period_ok=self.period_ok
+                )
             elif export_type == "PDF":
                 figs = self.all_figures if self.all_figures else []
                 DataExporter.export_to_pdf(self.simulation_history, self.bit_sequence, self.test_results, figs)

@@ -89,9 +89,9 @@ class MainWindow(tk.Tk):
         La lógica principal de la simulación que se ejecuta en un hilo separado.
         """
         try:
-            # 1. Generar bits caóticos
+            # 1. Generar bits caóticos y valores reales y periodo
             messagebox.showinfo("Simulación", f"Generando {config_params['num_bits']} bits caóticos. Esto puede tomar un momento para grandes N.")
-            chaotic_bits = self.chaotic_generator.generate_cccbg_bits(
+            chaotic_bits, chaotic_x_values, period_ok = self.chaotic_generator.generate_cccbg_bits(
                 alpha=config_params['alpha'],
                 x0=config_params['x0'],
                 y0=config_params['y0'],
@@ -131,10 +131,16 @@ class MainWindow(tk.Tk):
             test_results['serial'] = self.randomness_tester.serial_test(chaotic_bits, m=2) # m=2 para díadas
             test_results['autocorr'] = self.randomness_tester.auto_correlation_test(chaotic_bits, d=1) # d=1 como en el paper
             test_results['poker'] = self.randomness_tester.poker_test(chaotic_bits, m=4) # m=4 como en el paper
+            # Añadir resultado de periodo
+            test_results['period_ok'] = period_ok
 
             # Actualizar GUI con resultados finales
             self.after(1, self.results_tab.display_simulation_summary, simulation_history)
             self.after(1, self.results_tab.display_test_results, test_results, chaotic_bits)
+            
+            # Guardar los valores reales y periodo para exportación
+            self.results_tab.chaotic_x_values = chaotic_x_values
+            self.results_tab.period_ok = period_ok
             
             # Graficar órbitas y mapas tipo paper
             self.after(1, self.simulation_tab.plot_paper_figures, config_params)
