@@ -163,8 +163,7 @@ class SimulationTab(ttk.Frame):
         ax1.set_ylim([0, 1])
         ax1.grid(True)
 
-        # Figura 2: Sensibilidad a condiciones iniciales o alpha
-        # Sensibilidad a condiciones iniciales
+        # Figura 2: Sensibilidad a condiciones iniciales
         X1 = np.zeros(N2)
         X2 = np.zeros(N2)
         X1[0] = x0
@@ -184,9 +183,20 @@ class SimulationTab(ttk.Frame):
 
         self.paper_figures = [fig1, fig2]
 
+        # Preparar datos de variabilidad para exportación
+        variability_data = {
+            'orbit_x': X,
+            'orbit_iterations': list(range(N)),
+            'sensitivity_x1': X1,
+            'sensitivity_x2': X2,
+            'sensitivity_iterations': list(range(N2)),
+            'config_params': config_params
+        }
+
         # Si ResultsTab está disponible, pásale las figuras paper como lista plana
         if self.results_tab is not None:
             self.results_tab.set_paper_figures([fig1, fig2])
+            self.results_tab.set_variability_data(variability_data)
 
     def plot_orbits(self, orbit_data_list):
         """

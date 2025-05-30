@@ -11,11 +11,12 @@ class DataExporter:
     a varios formatos (CSV, PDF).
     """
     @staticmethod
-    def export_to_csv(simulation_history: dict, bit_sequence: np.ndarray, x_values=None, period_ok=None):
+    def export_to_csv(simulation_history: dict, bit_sequence: np.ndarray, x_values=None, period_ok=None, variability_data=None):
         """
         Exporta el historial de la simulación y la secuencia de bits a archivos CSV.
         x_values: valores reales antes de decidir el bit (opcional)
         period_ok: bool, si la semilla cumple su periodo (opcional)
+        variability_data: dict con datos de variabilidad/órbitas (opcional)
         """
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         file_path_base = filedialog.asksaveasfilename(
@@ -70,6 +71,44 @@ class DataExporter:
                 messagebox.showinfo("Exportación Exitosa", f"Secuencia de bits guardada en:\n{bit_file_path}")
             else:
                 messagebox.showinfo("Exportación CSV", "No hay secuencia de bits para exportar.")
+
+            # Exportar datos de variabilidad
+            if variability_data is not None:
+                variability_file_path = file_path_base.replace(".csv", "_variabilidad.csv")
+                try:
+                    # Exportar órbita del mapa
+                    if 'orbit_x' in variability_data and 'orbit_iterations' in variability_data:
+                        df_orbit = pd.DataFrame({
+                            'iteracion': variability_data['orbit_iterations'],
+                            'x_valor': variability_data['orbit_x']
+                        })
+                        df_orbit.to_csv(variability_file_path, index=False)
+                        
+                        # Agregar datos de sensibilidad si están disponibles
+                        if 'sensitivity_x1' in variability_data and 'sensitivity_x2' in variability_data:
+                            with open(variability_file_path, "a", encoding="utf-8") as f:
+                                f.write("\n# DATOS DE SENSIBILIDAD A CONDICIONES INICIALES\n")
+                            
+                            df_sensitivity = pd.DataFrame({
+                                'iteracion': variability_data['sensitivity_iterations'],
+                                'x1_valor': variability_data['sensitivity_x1'],
+                                'x2_valor': variability_data['sensitivity_x2']
+                            })
+                            df_sensitivity.to_csv(variability_file_path, mode='a', index=False)
+                        
+                        # Agregar parámetros de configuración
+                        with open(variability_file_path, "a", encoding="utf-8") as f:
+                            f.write("\n# PARÁMETROS DE CONFIGURACIÓN\n")
+                            if 'config_params' in variability_data:
+                                for key, value in variability_data['config_params'].items():
+                                    f.write(f"# {key}: {value}\n")
+                        
+                        messagebox.showinfo("Exportación Exitosa", f"Datos de variabilidad guardados en:\n{variability_file_path}")
+                    else:
+                        messagebox.showinfo("Exportación CSV", "No hay datos de variabilidad completos para exportar.")
+                        
+                except Exception as e:
+                    messagebox.showwarning("Advertencia", f"Error al exportar datos de variabilidad: {e}")
 
         except Exception as e:
             messagebox.showerror("Error de Exportación CSV", f"No se pudo exportar los datos a CSV: {e}")

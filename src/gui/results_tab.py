@@ -19,6 +19,7 @@ class ResultsTab(ttk.Frame):
         self.all_figures = []
         self.chaotic_x_values = None
         self.period_ok = None
+        self.variability_data = None  # Nuevo atributo para datos de variabilidad
         self._create_widgets()
 
     def _create_widgets(self):
@@ -112,7 +113,8 @@ class ResultsTab(ttk.Frame):
                     self.simulation_history,
                     self.bit_sequence,
                     x_values=self.chaotic_x_values,
-                    period_ok=self.period_ok
+                    period_ok=self.period_ok,
+                    variability_data=self.variability_data
                 )
             elif export_type == "PDF":
                 figs = self.all_figures if self.all_figures else []
@@ -127,6 +129,10 @@ class ResultsTab(ttk.Frame):
         btn_csv.pack(pady=5)
         btn_pdf = ttk.Button(export_win, text="Exportar a PDF", command=lambda: do_export("PDF"))
         btn_pdf.pack(pady=5)
+
+    def set_variability_data(self, variability_data):
+        """Establece los datos de variabilidad para exportación."""
+        self.variability_data = variability_data
 
     def display_simulation_summary(self, history_data: dict):
         if not history_data['latency']:
